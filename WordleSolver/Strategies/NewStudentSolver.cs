@@ -83,13 +83,61 @@ public sealed class NewStudentSolver : IWordleSolverStrategy
         {
             for (int i = 0; i < 5; i++)
             {
-                if (previousResult.LetterStatuses[i] == LetterStatus.Unused)
+                char letter = previousResult.Word[i];
+                var status = previousResult.LetterStatuses[i];
+
+                if (status == LetterStatus.Correct)
                 {
-                    foreach (string word in _remainingWords)
+                    foreach (string word in _remainingWords.ToList())
                     {
-                        if (word.Contains(previousResult.Word[i]))
+                        if (word[i] != letter)
                         {
                             _remainingWords.Remove(word);
+                        }
+                    }
+                }
+                else if (status == LetterStatus.Misplaced)
+                {
+                    foreach (string word in _remainingWords.ToList())
+                    {
+                        if (word[i] == letter || !word.Contains(letter))
+                        {
+                            _remainingWords.Remove(word);
+                        }
+                    }
+                }
+                else if (status == LetterStatus.Unused)
+                {
+                    // Only remove words containing the letter if it doesn't appear as Correct or Misplaced elsewhere
+                    bool letterElsewhere = false;
+                    for (int j = 0; j < 5; j++)
+                    {
+                        if (j != i && previousResult.Word[j] == letter &&
+                            (previousResult.LetterStatuses[j] == LetterStatus.Correct ||
+                             previousResult.LetterStatuses[j] == LetterStatus.Misplaced))
+                        {
+                            letterElsewhere = true;
+                            break;
+                        }
+                    }
+                    if (!letterElsewhere)
+                    {
+                        foreach (string word in _remainingWords.ToList())
+                        {
+                            if (word.Contains(letter))
+                            {
+                                _remainingWords.Remove(word);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (string word in _remainingWords.ToList())
+                        {
+                            if (word[i] == letter)
+                            {
+                                _remainingWords.Remove(word);
+                            }
                         }
                     }
                 }
